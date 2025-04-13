@@ -1,141 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Multi-University Chatbot</title>
-    <link rel="stylesheet" href="/static/styles.css">
-</head>
-<body>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
     <div id="chat-container">
-        <div class="head">
-            <h3>Chatbot for {{ college | capitalize }}</h3>
-            <img id="logo" src="/static/logo.png" alt="Chatbot Logo">
-        </div>
+      <div class="head">
+        <h3>Chatbot for {{ college | capitalize }}</h3>
+        <img id="logo" src="/static/logo.png" alt="Chatbot Logo" />
+      </div>
 
-        <div id="menu-bar">
-            <ul>
-                <li><a href="https://jntuh.ac.in/" target="_blank">JNTUH</a></li>
-                <li><a href="https://anurag.ac.in/" target="_blank">Anurag University</a></li>
-                <li><a href="https://www.mallareddyuniversity.ac.in/" target="_blank">Malla Reddy University</a></li>
-            </ul>
-        </div>
+      <div id="menu-bar">
+        <ul>
+          <li><a href="https://jntuh.ac.in/" target="_blank">JNTUH</a></li>
+          <li>
+            <a href="https://anurag.ac.in/" target="_blank"
+              >Anurag University</a
+            >
+          </li>
+          <li>
+            <a href="https://www.mallareddyuniversity.ac.in/" target="_blank"
+              >Malla Reddy University</a
+            >
+          </li>
+          <li>
+            <a href="https://sreenidhi.edu.in" target="_blank">Sreenidhi</a>
+          </li>
+        </ul>
+      </div>
 
-        <div id="chat-log"></div>
+      <div id="chat-log"></div>
 
-        <div id="message-box">
-            <input type="text" id="message-input" placeholder="Ask about {{ college | capitalize }}...">
-            <div id="mic-container">
-                <button id="mic-button" onclick="startDictation()">
-                    <span id="mic-icon">🎙️</span>
-                </button>
-            </div>
-            <button id="send-button">Send</button>
+      <div id="message-box">
+        <input
+          type="text"
+          id="message-input"
+          placeholder="Ask about {{ college | capitalize }}..."
+        />
+        <div id="mic-container">
+          <button id="mic-button" onclick="startDictation()">
+            <span id="mic-icon">🎙️</span>
+          </button>
         </div>
+        <button id="send-button">Send</button>
+      </div>
 
-        <div id="feedback-container">
-            <h4>We value your feedback!</h4>
-            <textarea id="feedback-text" placeholder="Write your feedback here..."></textarea>
-            <button id="submit-feedback">Submit Feedback</button>
-        </div>
+      <div id="feedback-container">
+        <h4>We value your feedback!</h4>
+        <textarea
+          id="feedback-text"
+          placeholder="Write your feedback here..."
+        ></textarea>
+        <button id="submit-feedback">Submit Feedback</button>
+      </div>
     </div>
 
     <script>
-        const chatLog = document.getElementById("chat-log");
-        const messageInput = document.getElementById("message-input");
-        const sendButton = document.getElementById("send-button");
-        const feedbackText = document.getElementById("feedback-text");
-        const feedbackButton = document.getElementById("submit-feedback");
+      const chatLog = document.getElementById("chat-log");
+      const messageInput = document.getElementById("message-input");
+      const sendButton = document.getElementById("send-button");
+      const feedbackText = document.getElementById("feedback-text");
+      const feedbackButton = document.getElementById("submit-feedback");
 
-        // Get college from URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const college = urlParams.get("college");
+      // Get college from URL parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const college = urlParams.get("college");
 
-        function appendMessage(content, className, isHTML = false) {
-            const message = document.createElement("div");
-            message.className = `message ${className}`;
-            if (isHTML) {
-                message.innerHTML = content;
-            } else {
-                message.textContent = content;
-            }
-            chatLog.appendChild(message);
-            chatLog.scrollTop = chatLog.scrollHeight;
+      function appendMessage(content, className, isHTML = false) {
+        const message = document.createElement("div");
+        message.className = `message ${className}`;
+        if (isHTML) {
+          message.innerHTML = content;
+        } else {
+          message.textContent = content;
         }
+        chatLog.appendChild(message);
+        chatLog.scrollTop = chatLog.scrollHeight;
+      }
 
-        sendButton.addEventListener("click", () => {
-            const userMessage = messageInput.value.trim();
-            if (userMessage) {
-                appendMessage(userMessage, "user");
-                messageInput.value = "";
+      sendButton.addEventListener("click", () => {
+        const userMessage = messageInput.value.trim();
+        if (userMessage) {
+          appendMessage(userMessage, "user");
+          messageInput.value = "";
 
-                fetch("/get_response", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: userMessage, college: college })
-                })
-                .then(response => response.json())
-                .then(data => appendMessage(data.response, "bot", true))
-                .catch(error => {
-                    console.error("Error:", error);
-                    appendMessage("Sorry, something went wrong!", "bot");
-                });
-            }
-        });
-
-        messageInput.addEventListener("keypress", (event) => {
-            if (event.key === "Enter") {
-                sendButton.click();
-            }
-        });
-
-        feedbackButton.addEventListener("click", () => {
-            const feedback = feedbackText.value.trim();
-            if (feedback) {
-                fetch("/submit_feedback", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ feedback })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    feedbackText.value = "";
-                    appendMessage(data.response, "bot");
-                })
-                .catch(error => {
-                    console.error("Error submitting feedback:", error);
-                    appendMessage("Failed to submit feedback!", "bot");
-                });
-            } else {
-                appendMessage("Please write something before submitting.", "bot");
-            }
-        });
-
-        function startDictation() {
-            if (window.SpeechRecognition || window.webkitSpeechRecognition) {
-                const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                recognition.lang = "en-US";
-
-                recognition.onresult = function (event) {
-                    const transcript = event.results[0][0].transcript;
-                    messageInput.value = transcript;
-                    recognition.stop();
-                    sendButton.click();
-                };
-
-                recognition.onerror = function (event) {
-                    console.error("Speech recognition error:", event.error);
-                    appendMessage("Speech recognition failed!", "bot");
-                    recognition.stop();
-                };
-
-                recognition.start();
-            } else {
-                appendMessage("Speech recognition is not supported in this browser.", "bot");
-            }
+          fetch("/get_response", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: userMessage, college: college }),
+          })
+            .then((response) => response.json())
+            .then((data) => appendMessage(data.response, "bot", true))
+            .catch((error) => {
+              console.error("Error:", error);
+              appendMessage("Sorry, something went wrong!", "bot");
+            });
         }
+      });
+
+      messageInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+          sendButton.click();
+        }
+      });
+
+      feedbackButton.addEventListener("click", () => {
+        const feedback = feedbackText.value.trim();
+        if (feedback) {
+          fetch("/submit_feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ feedback }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              feedbackText.value = "";
+              appendMessage(data.response, "bot");
+            })
+            .catch((error) => {
+              console.error("Error submitting feedback:", error);
+              appendMessage("Failed to submit feedback!", "bot");
+            });
+        } else {
+          appendMessage("Please write something before submitting.", "bot");
+        }
+      });
+
+      function startDictation() {
+        if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+          const recognition = new (window.SpeechRecognition ||
+            window.webkitSpeechRecognition)();
+          recognition.continuous = false;
+          recognition.interimResults = false;
+          recognition.lang = "en-US";
+
+          recognition.onresult = function (event) {
+            const transcript = event.results[0][0].transcript;
+            messageInput.value = transcript;
+            recognition.stop();
+            sendButton.click();
+          };
+
+          recognition.onerror = function (event) {
+            console.error("Speech recognition error:", event.error);
+            appendMessage("Speech recognition failed!", "bot");
+            recognition.stop();
+          };
+
+          recognition.start();
+        } else {
+          appendMessage(
+            "Speech recognition is not supported in this browser.",
+            "bot"
+          );
+        }
+      }
     </script>
-</body>
+  </body>
 </html>

@@ -29,7 +29,7 @@ UNIVERSITIES = {
 
 
 
-    "sreenidhi":{"home":"https://sreenidhi.edu.in/" , }
+    "sreenidhi":{"home":"https://sreenidhi.edu.in/" , "courses":"https://sreenidhi.edu.in/snist-admissions/admissions-b-tech", "library":"https://sreenidhi.edu.in/central-library/", 'exams':"https://sreenidhi.edu.in/examination-updates/#1654682332829-990476e7-1635"}
 }
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
@@ -423,8 +423,59 @@ def scrape_university(url, topic, college):
         elif college == "sreenidhi":
             if topic == "location":
                 results.append("Sreenidhi Institute of Science & Technology \n Yamnampet, Ghatkesar Hyderabad - 501 301, \n Telangana. info@sreenidhi.edu.in")
+            
+            if topic == "courses":
+                subpage_url = UNIVERSITIES[college]["courses"]
+                sub_response = session.get(subpage_url, headers=HEADERS, timeout=30)
+                sub_soup = BeautifulSoup(sub_response.text, "html.parser")
+
+                # Find all <p> tags within divs of class 'elementor-widget-container'
+                items = sub_soup.select("div.elementor-widget-container p")
+
+                # Extract text and combine
+                results = [item.get_text(strip=True) for item in items]
+                combined_result = "\n".join(results)
+                print(combined_result)
+                results.append(combined_result)
+
+            if topic == "library":
+                subpage_url = UNIVERSITIES[college]["courses"]
+                sub_response = session.get(subpage_url, headers=HEADERS, timeout=30)
+                sub_soup = BeautifulSoup(sub_response.text, "html.parser")
+
+                # Find all divs with class 'elementor-widget-container'
+                items = sub_soup.select("div.elementor-widget-container")
+
+                # Extract text and combine
+                results = [item.get_text(strip=True) for item in items]
+                combined_result = "\n".join(results)
+                print(combined_result)
+            
             if topic == "images":
-                results.append("kjashdkhas")
+                image_urls = ["https://sreenidhi.edu.in/wp-content/uploads/2023/01/WhatsApp-Image-2023-01-12-at-11.50.35-AM-1.jpeg" , "https://sreenidhi.edu.in/wp-content/uploads/2023/01/e25fd7c8-642b-4a0e-a195-a9a316a74a03.jpeg"]
+
+                if image_urls:
+                    results.append("Images:\n" + "<br>".join([f'<img src="{img_url}" alt="image" style="max-width:200px;"/>' for img_url in image_urls]))
+
+            if topic == "exams":
+                subpage_url = UNIVERSITIES[college]["exams"]
+                sub_response = session.get(subpage_url, headers=HEADERS, timeout=30)
+                sub_soup = BeautifulSoup(sub_response.text, "html.parser")
+
+                # Select divs with all three classes
+                items = sub_soup.select("div.vc_custom_heading.vc_gitem-post-data.vc_gitem-post-data-source-post_title")
+
+                # Extract text and combine
+                results = [item.get_text(strip=True) for item in items]
+                combined_result = "\n".join(results)
+                print(combined_result)
+
+
+               
+
+
+
+
 
 
         if results:
